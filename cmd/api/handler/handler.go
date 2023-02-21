@@ -6,10 +6,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct{}
+type TransactionService interface{}
 
-func NewHandler() *Handler {
-	return &Handler{}
+type Handler struct {
+	Service TransactionService
+}
+
+func NewHandler(service TransactionService) *Handler {
+	return &Handler{
+		Service: service,
+	}
 }
 
 func (h *Handler) CreateTransaction(ctx *gin.Context) {
