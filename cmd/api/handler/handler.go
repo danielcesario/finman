@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/danielcesario/finman/internal/transactions"
 	"github.com/gin-gonic/gin"
 )
 
-type TransactionService interface{}
+type TransactionService interface {
+	CreateUser(ctx context.Context, request transactions.UserRequest) (*transactions.UserResponse, error)
+}
 
 type Handler struct {
 	Service TransactionService
@@ -18,6 +22,26 @@ func NewHandler(service TransactionService) *Handler {
 	}
 }
 
-func (h *Handler) CreateTransaction(ctx *gin.Context) {
-	ctx.IndentedJSON(http.StatusCreated, map[string]interface{}{"result": "ok"})
+func (h *Handler) Register(context *gin.Context) {
+	var request transactions.UserRequest
+	if err := context.ShouldBindJSON(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.Abort()
+		return
+	}
+
+	if err := request.HashPassword(request.Password); err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		context.Abort()
+		return
+	}
+
+	response, err := h.Service.CreateUser(context, request)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		context.Abort()
+		return
+	}
+
+	context.JSON(http.StatusCreated, response)
 }

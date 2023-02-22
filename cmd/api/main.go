@@ -20,7 +20,7 @@ func main() {
 	handler := handler.NewHandler(service)
 
 	router := gin.Default()
-	router.POST("/api/transactions", handler.CreateTransaction)
+	router.POST("/api/register", handler.Register)
 
 	router.Run("localhost:8080")
 }
